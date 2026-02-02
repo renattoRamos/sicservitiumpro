@@ -26,7 +26,7 @@ function getGreeting() {
 export function EmailPreview({ open, onOpenChange, to, cc, subject, selected, dates }: Props) {
   const { toast } = useToast();
 
-  const datesList = useMemo(
+  const datesListText = useMemo(
     () =>
       dates
         .slice()
@@ -36,10 +36,20 @@ export function EmailPreview({ open, onOpenChange, to, cc, subject, selected, da
     [dates]
   );
 
+  const datesListHtml = useMemo(
+    () =>
+      dates
+        .slice()
+        .sort((a, b) => a.getTime() - b.getTime())
+        .map((d) => format(d, 'dd/MM/yyyy'))
+        .join('<br />'),
+    [dates]
+  );
+
   const greeting = getGreeting();
 
   const body = selected
-    ? `${greeting}\n\nComo coordenador da área de manutenção da CMA SUL na ${selected.lotacao} e responsável pela equipe de manutenção, operação e administrativa das unidades da CPR SUL/CMA SUL da Servitium, gostaria de informar que o colaborador ${selected.nome}, matrícula ${selected.matricula}, CPF ${selected.cpf ? formatCPF(selected.cpf) : '-'}, da especialidade ${selected.especialidade}, do contrato ${selected.contrato}, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:\n\n${datesList}\n\nO colaborador mencionou ter encontrado dificuldades para registrar o ponto nesses dias, o que impossibilitou a validação dos registros.\nSolicito gentilmente que sejam realizados os ajustes necessários no sistema para inclusão dos dias de trabalho do colaborador mencionado.\n\nContato do Colaborador: ${selected.telefone ?? '-'} (Whatsapp)`
+    ? `${greeting}\n\nComo coordenador da área de manutenção da CMA SUL na ${selected.lotacao} e responsável pela equipe de manutenção, operação e administrativa das unidades da CPR SUL/CMA SUL da Servitium, gostaria de informar que o colaborador ${selected.nome}, matrícula ${selected.matricula}, CPF ${selected.cpf ? formatCPF(selected.cpf) : '-'}, da especialidade ${selected.especialidade}, do contrato ${selected.contrato}, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:\n\n${datesListText}\n\nO colaborador mencionou ter encontrado dificuldades para registrar o ponto nesses dias, o que impossibilitou a validação dos registros.\nSolicito gentilmente que sejam realizados os ajustes necessários no sistema para inclusão dos dias de trabalho do colaborador mencionado.\n\nContato do Colaborador: ${selected.telefone ?? '-'} (Whatsapp)`
     : '';
 
   return (
@@ -55,16 +65,16 @@ export function EmailPreview({ open, onOpenChange, to, cc, subject, selected, da
           <p><span className="font-medium">Assunto:</span> {subject}</p>
           {selected && (
             <article className="w-full rounded-md border border-input bg-background p-4 leading-relaxed">
-              <p>{greeting}</p>
-              <p className="mt-3">
+              <p style={{ marginBottom: '12px' }}>{greeting}</p>
+              <p style={{ margin: '12px 0' }}>
                 Como coordenador da CMA SUL na {selected.lotacao} e responsável pela equipe de manutenção e administrativa da Servitium, gostaria de informar que o colaborador <strong>{selected.nome}</strong>, matrícula <strong>{selected.matricula}</strong>, CPF <strong>{selected.cpf ? formatCPF(selected.cpf) : '-'}</strong>, da especialidade <strong>{selected.especialidade}</strong>, do contrato <strong>{selected.contrato}</strong>, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:
               </p>
-              <p className="mt-3 whitespace-pre-wrap">{datesList}</p>
-              <p className="mt-3">
+              <p style={{ margin: '12px 0' }} dangerouslySetInnerHTML={{ __html: datesListHtml }} />
+              <p style={{ margin: '12px 0' }}>
                 O colaborador mencionou ter encontrado dificuldades para registrar o ponto nesses dias, o que impossibilitou a validação dos registros.
                 Solicito gentilmente que sejam realizados os ajustes necessários no sistema para inclusão dos dias de trabalho do colaborador mencionado.
               </p>
-              <p className="mt-3">
+              <p style={{ marginTop: '12px' }}>
                 Contato do Colaborador: <strong>{selected.telefone ?? '-'}</strong> (Whatsapp)
               </p>
             </article>
@@ -77,24 +87,23 @@ export function EmailPreview({ open, onOpenChange, to, cc, subject, selected, da
               if (!selected) return;
 
               const greeting = getGreeting();
-              const plainText = `Destinatário: ${to}\nCc: ${cc}\nAssunto: ${subject}\n\n${greeting}\n\nComo coordenador da área de manutenção da CMA SUL na ${selected.lotacao} e responsável pela equipe de manutenção, operação e administrativa das unidades da CPR SUL/CMA SUL da Servitium, gostaria de informar que o colaborador ${selected.nome}, matrícula ${selected.matricula}, CPF ${selected.cpf ? formatCPF(selected.cpf) : '-'}, da especialidade ${selected.especialidade}, do contrato ${selected.contrato}, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:\n\n${datesList}\n\nO colaborador mencionou ter encontrado dificuldades para registrar o ponto nesses dias, o que impossibilitou a validação dos registros.\nSolicito gentilmente que sejam realizados os ajustes necessários no sistema para inclusão dos dias de trabalho do colaborador mencionado.\n\nContato do Colaborador: ${selected.telefone ?? '-'} (Whatsapp)`;
-
+              const plainText = `Destinatário: ${to}\nCc: ${cc}\nAssunto: ${subject}\n\n${greeting}\n\nComo coordenador da área de manutenção da CMA SUL na ${selected.lotacao} e responsável pela equipe de manutenção, operação e administrativa das unidades da CPR SUL/CMA SUL da Servitium, gostaria de informar que o colaborador ${selected.nome}, matrícula ${selected.matricula}, CPF ${selected.cpf ? formatCPF(selected.cpf) : '-'}, da especialidade ${selected.especialidade}, do contrato ${selected.contrato}, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:\n\n${datesListText}\n\nO colaborador mencionou ter encontrado dificuldades para registrar o ponto nesses dias, o que impossibilitou a validação dos registros.\nSolicito gentilmente que sejam realizados os ajustes necessários no sistema para inclusão dos dias de trabalho do colaborador mencionado.\n\nContato do Colaborador: ${selected.telefone ?? '-'} (Whatsapp)`;
               const htmlContent = `
                 <div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #000080;">
-                  <p><strong>Destinatário:</strong> ${to}</p>
-                  <p><strong>Cc:</strong> ${cc}</p>
-                  <p><strong>Assunto:</strong> ${subject}</p>
+                  <p style="margin: 0 0 12px 0;"><strong>Destinatário:</strong> ${to}</p>
+                  <p style="margin: 0 0 12px 0;"><strong>Cc:</strong> ${cc}</p>
+                  <p style="margin: 0 0 12px 0;"><strong>Assunto:</strong> ${subject}</p>
                   <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-                  <p>${greeting}</p>
-                  <p style="margin-top: 12px;">
-                    Como coordenador da CMA SUL na ${selected.lotacao} e responsável pela equipe de manutenção e administrativa da Servitium, gostaria de informar que o colaborador <strong>${selected.nome}</strong>, matrícula <strong>${selected.matricula}</strong>, CPF <strong>${selected.cpf ? formatCPF(selected.cpf) : '-'}</strong>, da especialidade <strong>${selected.especialidade}</strong>, do contrato <strong>${selected.contrato}</strong>, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:\n
+                  <p style="margin: 0 0 12px 0;">${greeting}</p>
+                  <p style="margin: 12px 0;">
+                    Como coordenador da CMA SUL na ${selected.lotacao} e responsável pela equipe de manutenção e administrativa da Servitium, gostaria de informar que o colaborador <strong>${selected.nome}</strong>, matrícula <strong>${selected.matricula}</strong>, CPF <strong>${selected.cpf ? formatCPF(selected.cpf) : '-'}</strong>, da especialidade <strong>${selected.especialidade}</strong>, do contrato <strong>${selected.contrato}</strong>, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:
                   </p>
-                  <p style="margin-top: 12px; white-space: pre-wrap;">${datesList}</p>
-                  <p style="margin-top: 12px;">
+                  <p style="margin: 12px 0;">${datesListHtml}</p>
+                  <p style="margin: 12px 0;">
                     O colaborador mencionou ter encontrado dificuldades para registrar o ponto nesses dias, o que impossibilitou a validação dos registros.
                     Solicito gentilmente que sejam realizados os ajustes necessários no sistema para inclusão dos dias de trabalho do colaborador mencionado.
                   </p>
-                  <p style="margin-top: 12px;">
+                  <p style="margin: 12px 0;">
                     Contato do Colaborador: <strong>${selected.telefone ?? '-'}</strong> (Whatsapp)
                   </p>
                 </div>
