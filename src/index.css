@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 222 65% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 85 54% 52%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 222 40% 96%;
+    --muted-foreground: 222 15% 46%;
+
+    --accent: 222 40% 96%;
+    --accent-foreground: 222 47% 16%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222 65% 36%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 222 65% 36%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 222 65% 36%;
+  }
+
+  /* O bloco .dark foi removido */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .neo-card {
+    @apply rounded-2xl bg-background;
+    box-shadow:
+      10px 10px 30px hsl(var(--foreground) / 0.10),
+      -10px -10px 30px hsl(var(--muted) / 0.70);
+  }
+
+  .neo-card:hover {
+    box-shadow:
+      8px 8px 24px hsl(var(--foreground) / 0.14),
+      -8px -8px 24px hsl(var(--muted) / 0.75);
+  }
+}
+
+.pwa-safe {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
