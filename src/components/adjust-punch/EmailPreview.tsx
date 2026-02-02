@@ -87,7 +87,7 @@ export function EmailPreview({ open, onOpenChange, to, cc, subject, selected, da
                   <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                   <p>${greeting}</p>
                   <p style="margin-top: 12px;">
-                    Como coordenador da área de manutenção da CMA SUL na ${selected.lotacao} e responsável pela equipe de manutenção, operação e administrativa das unidades da CPR SUL/CMA SUL da Servitium, gostaria de informar que o colaborador <strong>${selected.nome}</strong>, matrícula <strong>${selected.matricula}</strong>, CPF <strong>${selected.cpf ? formatCPF(selected.cpf) : '-'}</strong>, da especialidade <strong>${selected.especialidade}</strong>, do contrato <strong>${selected.contrato}</strong>, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:
+                    Como coordenador da CMA SUL na ${selected.lotacao} e responsável pela equipe de manutenção e administrativa da Servitium, gostaria de informar que o colaborador <strong>${selected.nome}</strong>, matrícula <strong>${selected.matricula}</strong>, CPF <strong>${selected.cpf ? formatCPF(selected.cpf) : '-'}</strong>, da especialidade <strong>${selected.especialidade}</strong>, do contrato <strong>${selected.contrato}</strong>, desempenhou suas atividades normalmente conforme o horário estabelecido nos dias:\n
                   </p>
                   <p style="margin-top: 12px; white-space: pre-wrap;">${datesList}</p>
                   <p style="margin-top: 12px;">
