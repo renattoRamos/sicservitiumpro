@@ -20,7 +20,9 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [openEmployeeForm, setOpenEmployeeForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<Filters>({
+    contrato: "CT.PS.22.4.417 - MANUT DAS UNIDADES OPERACIONAIS"
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [showTop, setShowTop] = useState(false);
   const [openVacationControl, setOpenVacationControl] = useState(false);
@@ -162,7 +164,9 @@ const Index = () => {
             {!isMobile && <ImportExportBar employees={employees} onApply={list => setEmployees(list)} />}
           </div>
           <FiltersBar employees={employees} values={filters} onChange={v => setFilters(v)} onReset={() => {
-            setFilters({});
+            setFilters({
+              contrato: "CT.PS.22.4.417 - MANUT DAS UNIDADES OPERACIONAIS"
+            });
             setSearchQuery('');
           }} />
         </div>
