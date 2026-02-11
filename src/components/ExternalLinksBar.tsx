@@ -16,7 +16,7 @@ export function ExternalLinksBar() {
       </Button>
       <Button
         style={{ backgroundColor: '#601EAA' }}
-        onClick={() => window.open("https://servitium.com.br/webmail", "_blank")}
+        onClick={() => window.open("https://rh.servitium.com.br/", "_blank")}
       >
         <span className="flex items-center gap-2">
           <FileText className="h-4 w-4" />

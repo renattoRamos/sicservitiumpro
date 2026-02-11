@@ -11,7 +11,7 @@ const PWALifeCycle: React.FC = () => {
         updateServiceWorker,
     } = useRegisterSW({
         onRegistered(r) {
-            console.log('SW Registered: ', r);
+            // Service worker successfully registered
         },
         onRegisterError(error) {
             console.error('SW registration error', error);

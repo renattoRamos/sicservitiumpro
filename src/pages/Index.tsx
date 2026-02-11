@@ -13,7 +13,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ExternalLinksBar } from '@/components/ExternalLinksBar';
 import { VacationControlModal } from '@/components/VacationControlModal';
 import { CorporateContacts } from '@/components/CorporateContacts';
-import { VacationMobileView } from '@/components/VacationMobileView'; // Importar VacationMobileView
+import { VacationMobileView } from '@/components/VacationMobileView';
+import { EmployeeGridView } from '@/components/EmployeeGridView';
+import { LayoutGrid, Table as TableIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const Index = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -26,7 +29,10 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showTop, setShowTop] = useState(false);
   const [openVacationControl, setOpenVacationControl] = useState(false);
-  const [openVacationMobileView, setOpenVacationMobileView] = useState(false); // Novo estado para a visualização mobile
+  const [openVacationMobileView, setOpenVacationMobileView] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => {
+    return (localStorage.getItem('employee-view-mode') as 'table' | 'grid') || 'table';
+  });
 
   const isMobile = useIsMobile();
   const {
@@ -57,6 +63,10 @@ const Index = () => {
       setIsLoading(false);
     })();
   }, [toast]);
+
+  useEffect(() => {
+    localStorage.setItem('employee-view-mode', viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 200);
@@ -171,15 +181,48 @@ const Index = () => {
           }} />
         </div>
 
-        <h2 className="text-2xl font-semibold mt-8 mb-4">Contatos Corporativos</h2>
+        <div className="flex items-center justify-between mt-8 mb-4">
+          <h2 className="text-2xl font-semibold">Contatos Corporativos</h2>
+          <div className="flex bg-white border-2 border-primary/10 p-1 rounded-sm gap-1 shadow-sm">
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="sm"
+              className={cn(
+                "rounded-none h-8 px-3 text-[10px] font-bold uppercase tracking-widest transition-all",
+                viewMode === 'table' ? "shadow-[2px_2px_0px_rgba(0,0,0,0.1)]" : "text-muted-foreground"
+              )}
+              onClick={() => setViewMode('table')}
+            >
+              <TableIcon className="size-3.5 mr-1.5" /> Tabela
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              className={cn(
+                "rounded-none h-8 px-3 text-[10px] font-bold uppercase tracking-widest transition-all",
+                viewMode === 'grid' ? "shadow-[2px_2px_0px_rgba(0,0,0,0.1)]" : "text-muted-foreground"
+              )}
+              onClick={() => setViewMode('grid')}
+            >
+              <LayoutGrid className="size-3.5 mr-1.5" /> Cards
+            </Button>
+          </div>
+        </div>
         <CorporateContacts />
 
-        {isLoading ? (
-          <div className="neo-card flex flex-col items-center justify-center p-16 gap-4">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-lg text-muted-foreground">Carregando dados...</p>
+        <div className="flex items-center justify-between mt-12 mb-6 border-b-2 border-primary/5 pb-2">
+          <h2 className="text-2xl font-semibold">Visualização de Funcionários</h2>
+          <div className="text-xs font-mono text-muted-foreground uppercase tracking-tighter">
+            {viewMode === 'table' ? 'Lista Estruturada' : 'Galeria Técnica'}
           </div>
-        ) : (
+        </div>
+
+        {isLoading ? (
+          <div className="neo-card flex flex-col items-center justify-center p-16 gap-4 border-2 border-primary/5">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="text-lg text-muted-foreground font-medium">Carregando dados do sistema...</p>
+          </div>
+        ) : viewMode === 'table' ? (
           <EmployeeTable
             data={filteredEmployees}
             searchQuery={searchQuery}
@@ -190,6 +233,17 @@ const Index = () => {
             }}
             onDelete={handleDeleteEmployee}
             isMobile={isMobile}
+          />
+        ) : (
+          <EmployeeGridView
+            data={filteredEmployees}
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
+            onEdit={e => {
+              setEditingEmployee(e);
+              setOpenEmployeeForm(true);
+            }}
+            onDelete={handleDeleteEmployee}
           />
         )}
 

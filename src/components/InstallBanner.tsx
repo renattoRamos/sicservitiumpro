@@ -73,61 +73,82 @@ const InstallBanner: React.FC = () => {
     return (
         <AnimatePresence>
             <motion.div
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 100, opacity: 0 }}
-                className="fixed bottom-4 left-4 right-4 z-[100] md:left-auto md:right-4 md:w-96"
+                initial={{ y: 50, opacity: 0, scale: 0.95 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: 50, opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed bottom-6 left-6 right-6 z-[100] md:left-auto md:right-6 md:w-[400px]"
             >
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 overflow-hidden relative group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 to-indigo-500" />
-
+                <div className="neo-card p-6 overflow-hidden relative group border-t-4 border-primary">
                     <button
                         onClick={dismissBanner}
-                        className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        className="absolute top-3 right-3 text-slate-400 hover:text-primary transition-colors p-1"
+                        aria-label="Fechar"
                     >
                         <X size={20} />
                     </button>
 
-                    <div className="flex items-start gap-4">
-                        <div className="bg-sky-500 rounded-xl p-2.5 text-white shadow-lg shadow-sky-500/20">
-                            <Download size={24} />
-                        </div>
-
-                        <div className="flex-1">
-                            <h3 className="font-bold text-slate-900 dark:text-white text-lg">
-                                Instalar Servitium
-                            </h3>
-                            <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5 leading-tight">
-                                Acesso rápido e offline direto da sua tela inicial.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-col gap-2">
-                        {platform === 'ios' ? (
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800 text-sm animate-pulse">
-                                <div className="flex items-center gap-2 mb-1 text-slate-700 dark:text-slate-300">
-                                    <span>Toque em </span>
-                                    <div className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded p-1 inline-flex items-center">
-                                        <Share size={14} className="text-sky-600" />
-                                    </div>
-                                    <span> depois em </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                                    <div className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded p-1 inline-flex items-center">
-                                        <PlusSquare size={14} className="text-sky-600" />
-                                    </div>
-                                    <span className="font-medium text-sky-600">Tela de Início</span>
-                                </div>
+                    <div className="space-y-6">
+                        <motion.div
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="flex items-center gap-4"
+                        >
+                            <div className="bg-primary/10 rounded-2xl p-4 text-primary shrink-0">
+                                <Download size={32} />
                             </div>
-                        ) : (
-                            <Button
-                                onClick={handleInstallClick}
-                                className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white border-0 shadow-lg shadow-sky-500/25 h-11 text-base font-semibold transition-all active:scale-95"
-                            >
-                                Instalar agora
-                            </Button>
-                        )}
+
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-foreground text-xl leading-tight">
+                                    Instalar Servitium
+                                </h3>
+                                <p className="text-muted-foreground text-sm mt-1">
+                                    Acesse o sistema CPR/CMA SUL direto da tela inicial.
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            {platform === 'ios' ? (
+                                <div className="bg-muted/50 rounded-2xl p-4 space-y-3 border border-border">
+                                    <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                                        Instruções para iPhone:
+                                    </p>
+
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                            <div className="bg-background border border-border rounded-lg p-2 shadow-sm">
+                                                <Share size={18} className="text-secondary" />
+                                            </div>
+                                            <span>1. Toque no botão de <strong>Compartilhar</strong></span>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                            <div className="bg-background border border-border rounded-lg p-2 shadow-sm">
+                                                <PlusSquare size={18} className="text-secondary" />
+                                            </div>
+                                            <span>2. Selecione <strong>Tela de Início</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <Button
+                                    onClick={handleInstallClick}
+                                    className="w-full h-14 text-lg font-bold bg-secondary hover:bg-secondary/90 text-white shadow-lg shadow-secondary/20 transition-all hover:scale-[1.02] active:scale-95 rounded-2xl"
+                                >
+                                    Instalar Agora
+                                </Button>
+                            )}
+                        </motion.div>
+
+                        <div className="flex justify-center">
+                            <div className="h-1 w-12 bg-muted rounded-full opacity-50" />
+                        </div>
                     </div>
                 </div>
             </motion.div>

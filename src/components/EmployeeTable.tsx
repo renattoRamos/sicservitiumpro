@@ -19,7 +19,7 @@ import {
   PaginationEllipsis,
 } from '@/components/ui/pagination';
 
-export type SortKey = 'nome' | 'matricula' | 'especialidade' | 'lotacao' | 'telefone';
+export type SortKey = 'nome' | 'matricula' | 'cpf' | 'especialidade' | 'lotacao' | 'telefone';
 type Props = {
   data: Employee[];
   onEdit: (employee: Employee) => void;
@@ -95,7 +95,7 @@ export function EmployeeTable({
 
   const sortedAndFiltered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const base = q ? data.filter(e => [e.nome, e.matricula, e.especialidade].filter(Boolean).some(v => String(v).toLowerCase().includes(q))) : data;
+    const base = q ? data.filter(e => [e.nome, e.matricula, e.cpf, e.especialidade].filter(Boolean).some(v => String(v).toLowerCase().includes(q))) : data;
     return base.slice().sort((a, b) => {
       const va = String(a[sortKey] || '').toLowerCase();
       const vb = String(b[sortKey] || '').toLowerCase();
@@ -161,120 +161,166 @@ export function EmployeeTable({
             <TableHeader>
               <TableRow>
                 <TableHead className={cn('sticky top-0 z-10 bg-background text-center w-[12%]')}>Foto</TableHead>
-                <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-left', isMobile ? 'w-[39%]' : 'w-[35%]')} onClick={() => toggleSort('nome')}>Nome</TableHead>
-                <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap', isMobile ? 'w-[10%]' : 'w-[12%]')} onClick={() => toggleSort('matricula')}>{isMobile ? 'Mat.' : 'Matrícula'}</TableHead>
-                <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap', isMobile ? 'w-[12%]' : 'w-[14%]')} onClick={() => toggleSort('telefone')}>Contato</TableHead>
+                <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-left', isMobile ? 'w-[32%]' : 'w-[28%]')} onClick={() => toggleSort('nome')}>Nome</TableHead>
+                <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap', isMobile ? 'w-[10%]' : 'w-[11%]')} onClick={() => toggleSort('matricula')}>{isMobile ? 'Mat.' : 'Matrícula'}</TableHead>
+                <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap', isMobile ? 'w-[14%]' : 'w-[14%]')} onClick={() => toggleSort('cpf')}>CPF</TableHead>
+                <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap', isMobile ? 'w-[12%]' : 'w-[13%]')} onClick={() => toggleSort('telefone')}>Contato</TableHead>
                 {!isMobile && <>
-                  <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap w-[14%]')} onClick={() => toggleSort('especialidade')}>Especialidade</TableHead>
-                  <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap w-[14%]')} onClick={() => toggleSort('lotacao')}>Lotação</TableHead>
+                  <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap w-[11%]')} onClick={() => toggleSort('especialidade')}>Especialidade</TableHead>
+                  <TableHead className={cn('sticky top-0 z-10 bg-background cursor-pointer select-none text-center whitespace-nowrap w-[11%]')} onClick={() => toggleSort('lotacao')}>Lotação</TableHead>
                   <TableHead className={cn('sticky top-0 z-10 bg-background text-center w-28')}>Ações</TableHead>
                 </>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedData.length === 0 ? <TableRow>
-                  <TableCell colSpan={isMobile ? 4 : 7} className="text-center text-muted-foreground py-8">Nenhum funcionário cadastrado</TableCell>
-                </TableRow> : paginatedData.map(e => <TableRow key={e.id || e.matricula}>
-                    <TableCell className="align-middle text-center w-[12%]">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-help transition-transform hover:scale-105">
-                            <img src={e.foto || '/placeholder.svg'} alt={`Foto de ${e.nome}`} className="size-16 aspect-square rounded-full object-cover mx-auto block" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="right" className="max-w-none">
-                          {formatEmployeeTooltip(e)}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TableCell>
-                  <TableCell className={cn("text-left whitespace-normal break-words", isMobile ? 'w-[39%]' : 'w-[35%]')}>
+                <TableCell colSpan={isMobile ? 4 : 7} className="text-center text-muted-foreground py-8">Nenhum funcionário cadastrado</TableCell>
+              </TableRow> : paginatedData.map(e => <TableRow key={e.id || e.matricula}>
+                <TableCell className="align-middle text-center w-[12%]">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help transition-transform hover:scale-105">
+                        <img src={e.foto || '/placeholder.svg'} alt={`Foto de ${e.nome}`} className="size-16 aspect-square rounded-full object-cover mx-auto block" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-none">
+                      {formatEmployeeTooltip(e)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TableCell>
+                <TableCell className={cn("text-left whitespace-normal break-words", isMobile ? 'w-[32%]' : 'w-[28%]')}>
+                  <button
+                    onClick={() => copyToClipboard(e.nome, 'Nome')}
+                    className="text-left hover:text-primary transition-colors cursor-pointer underline-offset-2 hover:underline"
+                    title="Clique para copiar o nome"
+                  >
+                    {e.nome}
+                  </button>
+                </TableCell>
+                <TableCell className={cn("text-center whitespace-nowrap", isMobile ? 'w-[10%]' : 'w-[11%]')}>
+                  <button
+                    onClick={() => copyToClipboard(e.matricula, 'Matrícula')}
+                    className="hover:text-primary transition-colors cursor-pointer underline-offset-2 hover:underline"
+                    title="Clique para copiar a matrícula"
+                  >
+                    {e.matricula}
+                  </button>
+                </TableCell>
+                <TableCell className={cn("text-center whitespace-nowrap", isMobile ? 'w-[14%]' : 'w-[14%]')}>
+                  {e.cpf ? (
                     <button
-                      onClick={() => copyToClipboard(e.nome, 'Nome')}
-                      className="text-left hover:text-primary transition-colors cursor-pointer underline-offset-2 hover:underline"
-                      title="Clique para copiar o nome"
-                    >
-                      {e.nome}
-                    </button>
-                  </TableCell>
-                  <TableCell className={cn("text-center whitespace-nowrap", isMobile ? 'w-[10%]' : 'w-[12%]')}>
-                    <button
-                      onClick={() => copyToClipboard(e.matricula, 'Matrícula')}
+                      onClick={() => copyToClipboard(e.cpf!.replace(/[.-]/g, ''), 'CPF')}
                       className="hover:text-primary transition-colors cursor-pointer underline-offset-2 hover:underline"
-                      title="Clique para copiar a matrícula"
+                      title="Clique para copiar o CPF (sem pontuação)"
                     >
-                      {e.matricula}
+                      {e.cpf}
                     </button>
-                  </TableCell>
-                  <TableCell className={cn("text-center whitespace-nowrap", isMobile ? 'w-[12%]' : 'w-[14%]')}>
-                    {e.telefone ? (
-                      <a
-                        href={`https://wa.me/55${e.telefone.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-primary transition-colors cursor-pointer underline-offset-2 hover:underline"
-                        title="Abrir no WhatsApp"
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell className={cn("text-center whitespace-nowrap", isMobile ? 'w-[12%]' : 'w-[13%]')}>
+                  {e.telefone ? (
+                    <a
+                      href={`https://wa.me/55${e.telefone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors cursor-pointer underline-offset-2 hover:underline"
+                      title="Abrir no WhatsApp"
+                    >
+                      {e.telefone}
+                    </a>
+                  ) : (
+                    '-'
+                  )}
+                </TableCell>
+                {!isMobile && <>
+                  <TableCell className="text-center whitespace-nowrap w-[11%]">{e.especialidade}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap w-[11%]">{e.lotacao}</TableCell>
+                  <TableCell className="text-center w-28">
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="rounded-xl font-bold transition-all active:scale-95 shadow-sm"
+                        onClick={() => onEdit(e)}
                       >
-                        {e.telefone}
-                      </a>
-                    ) : (
-                      '-'
-                    )}
+                        <AiOutlineEdit className="mr-1 size-4" /> Editar
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="rounded-xl font-bold transition-all active:scale-95 shadow-sm"
+                          >
+                            <AiOutlineDelete className="mr-1 size-4" /> Excluir
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="rounded-2xl border-2">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="font-black uppercase tracking-tight text-destructive">Remover Funcionário?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-slate-600">
+                              Esta ação removerá permanentemente <span className="font-bold text-slate-900">{e.nome}</span> do sistema.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="rounded-xl font-bold uppercase tracking-widest text-xs">Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => onDelete(e.id)}
+                              className="rounded-xl font-bold uppercase tracking-widest text-xs bg-destructive hover:bg-destructive/90 shadow-sm"
+                            >
+                              Confirmar Exclusão
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
-                  {!isMobile && <>
-                    <TableCell className="text-center whitespace-nowrap w-[14%]">{e.especialidade}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap w-[14%]">{e.lotacao}</TableCell>
-                    <TableCell className="text-center w-28">
-                      <div className="flex gap-2 justify-center">
-                        <Button size="sm" variant="secondary" onClick={() => onEdit(e)}><AiOutlineEdit /> Editar</Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="destructive"><AiOutlineDelete /> Excluir</Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação não poderá ser desfeita. O funcionário será removido.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => onDelete(e.id)}>Confirmar</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                        </div>
-                      </TableCell>
-                  </>}
-                  </TableRow>)}
+                </>}
+              </TableRow>)}
             </TableBody>
           </Table>
         </TooltipProvider>
       </div>
 
       {totalPages > 1 && (
-        <Pagination className="mt-4">
-          <PaginationContent>
+        <Pagination className="mt-8">
+          <PaginationContent className="gap-2">
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => handlePageChange(currentPage - 1)}
-                isActive={currentPage > 1}
+                className={cn(
+                  "hover:bg-transparent text-primary font-medium transition-opacity",
+                  currentPage === 1 ? "opacity-30 pointer-events-none" : "cursor-pointer"
+                )}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => handlePageChange(page)}
-                  isActive={currentPage === page}
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            <div className="flex items-center gap-1 mx-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => handlePageChange(page)}
+                    isActive={currentPage === page}
+                    className={cn(
+                      "size-10 transition-all font-bold rounded-lg border-none",
+                      currentPage === page
+                        ? "bg-white text-primary shadow-md hover:bg-white"
+                        : "bg-transparent text-muted-foreground hover:text-primary hover:bg-primary/5"
+                    )}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+            </div>
             <PaginationItem>
               <PaginationNext
                 onClick={() => handlePageChange(currentPage + 1)}
-                isActive={currentPage < totalPages}
+                className={cn(
+                  "hover:bg-transparent text-primary font-medium transition-opacity",
+                  currentPage === totalPages ? "opacity-30 pointer-events-none" : "cursor-pointer"
+                )}
               />
             </PaginationItem>
           </PaginationContent>
