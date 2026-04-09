@@ -13,7 +13,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ExternalLinksBar } from '@/components/ExternalLinksBar';
 import { VacationControlModal } from '@/components/VacationControlModal';
 import { CorporateContacts } from '@/components/CorporateContacts';
-import { VacationMobileView } from '@/components/VacationMobileView';
 import { EmployeeGridView } from '@/components/EmployeeGridView';
 import { LayoutGrid, Table as TableIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -23,13 +22,16 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [openEmployeeForm, setOpenEmployeeForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [filters, setFilters] = useState<Filters>({
-    contrato: "CT.PS.22.4.417 - MANUT DAS UNIDADES OPERACIONAIS"
+  const [filters, setFilters] = useState<Filters>(() => {
+    const saved = localStorage.getItem('filtro-contrato');
+    if (saved !== null) {
+      return { contrato: saved === '__all__' ? undefined : saved };
+    }
+    return { contrato: undefined }; // Padrão "Todos" se não houver valor salvo
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [showTop, setShowTop] = useState(false);
   const [openVacationControl, setOpenVacationControl] = useState(false);
-  const [openVacationMobileView, setOpenVacationMobileView] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => {
     return (localStorage.getItem('employee-view-mode') as 'table' | 'grid') || 'table';
   });
@@ -67,6 +69,10 @@ const Index = () => {
   useEffect(() => {
     localStorage.setItem('employee-view-mode', viewMode);
   }, [viewMode]);
+
+  useEffect(() => {
+    localStorage.setItem('filtro-contrato', filters.contrato ?? '__all__');
+  }, [filters.contrato]);
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 200);
@@ -167,15 +173,15 @@ const Index = () => {
                   <AiOutlineUserAdd /> Adicionar Funcionário
                 </Button>
               )}
-              <Button variant="outline" onClick={() => isMobile ? setOpenVacationMobileView(true) : setOpenVacationControl(true)}>
+              <Button variant="outline" onClick={() => setOpenVacationControl(true)}>
                 <CalendarCheck className="mr-2 h-5 w-5" /> Controle de Férias
               </Button>
             </div>
-            {!isMobile && <ImportExportBar employees={employees} onApply={list => setEmployees(list)} />}
+            {!isMobile && <ImportExportBar employees={filteredEmployees} onApply={list => setEmployees(list)} />}
           </div>
           <FiltersBar employees={employees} values={filters} onChange={v => setFilters(v)} onReset={() => {
             setFilters({
-              contrato: "CT.PS.22.4.417 - MANUT DAS UNIDADES OPERACIONAIS"
+              contrato: undefined
             });
             setSearchQuery('');
           }} />
@@ -259,21 +265,12 @@ const Index = () => {
           />
         )}
 
-        {!isMobile && (
-          <VacationControlModal
-            open={openVacationControl}
-            onOpenChange={setOpenVacationControl}
-            employees={employees}
-          />
-        )}
-
-        {isMobile && (
-          <VacationMobileView
-            open={openVacationMobileView}
-            onOpenChange={setOpenVacationMobileView}
-            employees={employees}
-          />
-        )}
+        {/* O modal de férias agora é universal e suporta mobile */}
+        <VacationControlModal
+          open={openVacationControl}
+          onOpenChange={setOpenVacationControl}
+          employees={employees}
+        />
       </section>
 
       {showTop && (

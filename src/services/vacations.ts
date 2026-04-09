@@ -1,81 +1,69 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Vacation } from '@/types/vacation';
+import { VacationDocument } from '@/types/vacation';
 
-// Map DB row -> UI model
-function mapFromDb(row: any): Vacation {
-  return {
-    id: String(row.id),
-    employeeId: String(row.employee_id),
-    employeeName: row.employee_name,
-    plannedMonth: row.planned_month,
-    plannedYear: row.planned_year,
-    sellDays: row.sell_days,
-    notificationDaysBefore: row.notification_days_before,
-    status: row.status,
-  };
-}
+const BUCKET = 'official-documents';
+const FOLDER = 'vacations';
+const SEPARATOR = '___';
 
-// Map UI model -> DB row
-function mapToDb(v: Partial<Vacation>) {
-  return {
-    employee_id: v.employeeId,
-    employee_name: v.employeeName,
-    planned_month: v.plannedMonth,
-    planned_year: v.plannedYear,
-    sell_days: v.sellDays,
-    notification_days_before: v.notificationDaysBefore,
-    status: v.status,
-  };
-}
-
-export async function getVacationsFromDb(): Promise<{ data: Vacation[]; error: Error | null }> {
-  const { data, error } = await supabase
-    .from('vacations')
-    .select('*')
-    .order('planned_year', { ascending: true })
-    .order('planned_month', { ascending: true });
+export async function getVacationDocuments(): Promise<{ data: VacationDocument[]; error: Error | null }> {
+  // Lista todos os arquivos da pasta 'vacations' do bucket
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .list(FOLDER, {
+       limit: 500,
+       offset: 0,
+       sortBy: { column: 'created_at', order: 'desc' }
+    });
 
   if (error) return { data: [], error };
-  return { data: (data ?? []).map(mapFromDb), error: null };
+
+  const docs: VacationDocument[] = (data || [])
+    .filter(f => f.name !== '.emptyFolderPlaceholder' && f.name !== '.gitkeep')
+    .map(f => {
+      // Extrair contrato e nome real do arquivo hospedado
+      const parts = f.name.split(SEPARATOR);
+      const contract = parts.length > 1 ? parts[0] : 'Geral';
+      const name = parts.length > 1 ? parts.slice(1).join(SEPARATOR) : f.name;
+
+      const path = `${FOLDER}/${f.name}`;
+      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
+      return {
+        id: f.id,
+        name,
+        contract,
+        url: urlData.publicUrl,
+        created_at: f.created_at,
+        // Mantemos o fullName para remoção posterior de forma segura:
+        fullName: f.name 
+      } as VacationDocument & { fullName: string };
+    });
+
+  return { data: docs, error: null };
 }
 
-export async function createVacationInDb(payload: Omit<Vacation, 'id'>): Promise<{ data: Vacation | null; error: Error | null }>{
-  const toInsert = mapToDb(payload);
-  const { data, error } = await supabase
-    .from('vacations')
-    .insert([toInsert])
-    .select('*')
-    .single();
+export async function uploadVacationDocument(contract: string, file: File): Promise<{ error: Error | null }>{
+  if (!contract) contract = 'Geral';
+  
+  // Substituir barras para não corromper caminhos do Storage
+  const safeContract = contract.replace(/\//g, '-');
+  const safeName = file.name.replace(/\//g, '-');
+  const fullPath = `${FOLDER}/${safeContract}${SEPARATOR}${safeName}`;
 
-  if (error) return { data: null, error };
-  return { data: mapFromDb(data), error: null };
-}
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(fullPath, file, {
+      cacheControl: '3600',
+      upsert: true
+    });
 
-export async function updateVacationInDb(id: string, payload: Partial<Vacation>): Promise<{ data: Vacation | null; error: Error | null }>{
-  const toUpdate = mapToDb(payload);
-  const { data, error } = await supabase
-    .from('vacations')
-    .update(toUpdate)
-    .eq('id', Number(id))
-    .select('*')
-    .single();
-
-  if (error) return { data: null, error };
-  return { data: mapFromDb(data), error: null };
-}
-
-export async function deleteVacationInDb(id: string): Promise<{ error: Error | null }>{
-  const { error } = await supabase
-    .from('vacations')
-    .delete()
-    .eq('id', Number(id));
   return { error: error ?? null };
 }
 
-export async function deleteAllVacationsInDb(): Promise<{ error: Error | null }>{
-  const { error } = await supabase
-    .from('vacations')
-    .delete()
-    .neq('id', 0); // Deletes all rows where id is not 0 (assuming id starts from 1)
+export async function deleteVacationDocument(fullName: string): Promise<{ error: Error | null }>{
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .remove([`${FOLDER}/${fullName}`]);
+    
   return { error: error ?? null };
-}
+}
